@@ -220,7 +220,7 @@ def update():
     # so we record data at each time step
     # if current_time_step % 10 == 0:
 
-    #data(community, mainland_island, current_time_step,rep)
+    data(community, mainland_island, current_time_step,rep)
 
     current_time_step += 1
         
