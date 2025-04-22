@@ -25,6 +25,7 @@ def data(community, mainland_island, current_time_step, rep):
     presence = 1 if abundance_count > 0 else 0
 
     df = pd.DataFrame({
+        'time_step': [current_time_step],
         'species_in_island': [species_name],
         'island_populated': [presence],
         'abundance_island': [abundance_count]

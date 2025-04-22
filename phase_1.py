@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import random as rnd
 import tkinter as tk
 import numpy as np
@@ -14,6 +12,8 @@ no niche.
 we change the dispersal, now only long, short dispersal given by gaussean, centered in the mean
 and sd 1/4 mainland
 "competition" occurs by randomly selecting an individual if is in the same place than other
+---------------------
+in phase 1 we add the environmental resources + plant niche. 
 '''
 #my functions 
 os.chdir("C:/Users/mdrmi/OneDrive/Escritorio/ABM_PHASES_SIMU")
@@ -23,6 +23,9 @@ from species_colors import color_species #we are only working with one specie.
 from data_collection_2_phase_0 import data
 from competition_phase_0 import competition
 from community_control import community_control
+from list_of_species import list_of_species
+from sps_niche import species_niche
+from environmental_niche import  niche_construction
 #GLOBAL VARIABLES RELATED TO LANDSCAPE 
 
 nrow = ncol = 100
@@ -30,8 +33,8 @@ size = 1/3
 main = ncol // 3
 shape = 0
 current_time_step = 0
-## species_list = list_of_species(1) THIS IS FROM A FUNCTION, WE DONT USE THIS HERE
-species_list = [1]
+#directory that contains the name of the sps "sp1, sp2,... spx"
+species_list = list_of_species(1)
 species_colors = color_species([1]) #we need to put it like this because there is one sps.
 # time steps of the simulation
 max_time_steps = 100
@@ -41,6 +44,17 @@ rep = 1
 #species_dispersal = dispersion_species([1], main)
 
 mainland_island = landscape_fixed_insolation_area(nrow, ncol, size, 'medium', main)
+
+#resources available in the environment
+resources = niche_construction(mainland_island)
+resources_environment = resources[0]
+resources_island = resources[1]
+resources_mainland = resources[2]
+
+#directory that contains the niche of different sps. 
+species_niches_dict = species_niche(species_list, resources_mainland)
+
+
 species_list_stable = species_list[:]
 
 species_colors_dict = dict(zip(species_list_stable, species_colors)) #this is ok, will produce 1 sps.
@@ -93,8 +107,8 @@ class Plant:
         self.pos = [x, y]
         #self.disp_cap = species_disp_dict.get(species)          
         self.color = species_colors_dict.get(species)
-        self.species = species            
-                         
+        self.species = species       
+        self.niche = species_niches_dict.get(species)                        
             
 def create_plant(x, y,initial_color):
     '''
@@ -151,10 +165,13 @@ def stop_clock(num_steps, current_time_step, pause_time):
     if current_time_step in (num_steps):        
         time.sleep(pause_time)
          
+        
 def update():    
           
     global current_time_step
     global community  # Declare community as a global variable
+
+    
     #for specie in species_list:    
     for i in species_list:
         #for phase 0 we need more individuals 
@@ -181,15 +198,26 @@ def update():
                 position = dispersal(plant) #for now its that parent
                 if position != None: #so not out of the x limits
                     x_off = position[0]
-                    y_off =position[1] 
+                    y_off = position[1] 
                     #i think we already covered this in the definition of dispersal
                     #if x_off <0 or x_off> ncol: #this is because we took of the round wold in the y 
                     #   continue
-                    #for the visual output                    
-                    drawing_off = create_plant(x_off, y_off, plant.color)
-                    #for the community
-                    offspring = Plant(x_off, y_off, drawing_off, plant.species)
-                    community.append(offspring)  
+                    #for the visual output 
+                    #NOW PHASE 1, THIS ONLY OCCURS IF THE SEED CAN USE RESOURCES IN THE ISLAND
+                    #CLARIFICATION, SPS ALWAYS WILL SHARE RESOURCES WITH MAINLAND BECAUSE ITS CONSTRUCTED 
+                    #AS A SUBSET
+                    if mainland_island[x_off, y_off] ==2: 
+                        if list(set(resources_island) & set(plant.niche)) != 0: # niche of the parent for now                   
+                            drawing_off = create_plant(x_off, y_off, plant.color)
+                            #for the community
+                            offspring = Plant(x_off, y_off, drawing_off, plant.species)
+                            community.append(offspring)  
+                    else: #in mainland
+                        drawing_off = create_plant(x_off, y_off, plant.color)
+                        #for the community
+                        offspring = Plant(x_off, y_off, drawing_off, plant.species)
+                        community.append(offspring)  
+                    
                     
             if plant.age >= 1:
                 #for visual output
@@ -220,7 +248,7 @@ def update():
     # so we record data at each time step
     # if current_time_step % 10 == 0:
 
-    #data(community, mainland_island, current_time_step,rep)
+    data(community, mainland_island, current_time_step,rep)
 
     current_time_step += 1
         

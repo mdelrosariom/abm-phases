@@ -190,16 +190,15 @@ def update():
                     #for the community
                     offspring = Plant(x_off, y_off, drawing_off, plant.species)
                     community.append(offspring)  
-                    
+                    #simple competition phase 1
+                   ## plants_down_for_competition  = competition(community,plants_to_remove)  
+            #adding plants lost for competition to list to eliminate 
+                  ##  plants_to_remove.extend(plants_down_for_competition)
             if plant.age >= 1:
                 #for visual output
                 canvas.delete(plant.drawing)
                 #for community
                 plants_to_remove.append(plant)     
-    #simple competition phase 0
-    plants_down_for_competition  = competition(community,plants_to_remove)  
-    #adding plants lost for competition to list to eliminate 
-    plants_to_remove.extend(plants_down_for_competition)
     com_control = community_control(community,nrow,main)
     plants_to_remove.extend(com_control)
     for plant in plants_to_remove:
