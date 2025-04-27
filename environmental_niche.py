@@ -17,14 +17,12 @@ def niche_construction(mainland_island):
     island_resources = rnd.sample(mainland_resources,10) #resources present island. now random number
     environmental_niche = mainland_island.copy() #copy mainland island
     environmental_niche[environmental_niche == 0] = np.nan #replace 0 values for NA values (sea)
-    resources_in_island = []
     for i in range(environmental_niche.shape[0]): 
         for j in range(environmental_niche.shape[1]): 
-            if environmental_niche[i, j] == 1: #mainland
-                resource_island = rnd.choice(mainland_resources)
-                environmental_niche[i, j] = resource_island           
-                resources_in_island.append(resource_island)
+            if environmental_niche[i, j] == 1: #mainland              
+                environmental_niche[i, j] = rnd.choice(mainland_resources)#resource_island           
+               
             if environmental_niche[i, j] == 2: #island   
                 environmental_niche[i, j] = rnd.choice(island_resources)
 
-    return environmental_niche, resources_in_island, mainland_resources 
+    return environmental_niche, island_resources, mainland_resources 
