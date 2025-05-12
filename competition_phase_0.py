@@ -9,10 +9,11 @@ import random as rnd
 import random as rnd
 from collections import defaultdict
 
-def competition(community, plants_to_remove): 
+def competition(community, plants_to_remove,resources_island): 
     '''
     For phase 0. At each occupied position, randomly keeps one individual and adds the others
     to the list of plants to remove.
+    we will always start with plants that have at least one resource shared with island
     '''
     #new technique. this creates a directory without specifying keys. (*). the keys
     #will be the positions there
@@ -29,9 +30,12 @@ def competition(community, plants_to_remove):
     # For each position with more than one plant, randomly keep one
     for pos, plants in position_dict.items():
         if len(plants) > 1: #if there are more than 1 plant/individual in a position
-            rnd.shuffle(plants) #shuffle to avoid bias
-            winner = rnd.choice(plants) #chose one to stay
-            losers = [p for p in plants if p != winner] #the others go
-            plants_to_remove.extend(losers) #adds the plants that will be eliminated to the list
-
+            #in this version we want to know which individual have more more 
+            #resources in the island. 
+            for plant in plants: 
+                resources = 
+                energy_resource = 1/len(plant.niche)
+                
+                
+                
     return plants_to_remove

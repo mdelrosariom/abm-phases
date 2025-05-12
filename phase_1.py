@@ -24,7 +24,7 @@ from data_collection_2_phase_0 import data
 from competition_phase_0 import competition
 from community_control import community_control
 from list_of_species import list_of_species
-from sps_niche import species_niche
+from sps_niche_phase_1_1 import species_niche
 from environmental_niche import  niche_construction
 #GLOBAL VARIABLES RELATED TO LANDSCAPE 
 
@@ -34,7 +34,7 @@ main = ncol // 3
 shape = 0
 current_time_step = 0
 #directory that contains the name of the sps "sp1, sp2,... spx"
-species_list = list_of_species(1)
+species_list = list_of_species(2)
 species_colors = color_species([1]) #we need to put it like this because there is one sps.
 # time steps of the simulation
 max_time_steps = 100

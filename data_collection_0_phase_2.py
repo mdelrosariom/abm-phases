@@ -39,4 +39,4 @@ def data(community, mainland_island, current_time_step, rep):
         
     })
 
-    df.to_excel(f"C:/Users/mdrmi/OneDrive/Escritorio/ABM_PHASES_SIMU/output_data_phase_1_1000_run_2_sps/phase_1_{rep}_{current_time_step}.xlsx", index=False)
+    df.to_excel(f"C:/Users/mdrmi/OneDrive/Escritorio/ABM_PHASES_SIMU/output_data_phase_1_1000_run/phase_1{rep}{current_time_step}.xlsx", index=False)
