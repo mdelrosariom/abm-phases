@@ -4,137 +4,35 @@ Created on Mon May 12 20:46:54 2025
 
 @author: mdrmi
 """
-
 import random as rnd
-import tkinter as tk
 import numpy as np
 import math as math
-from PIL import Image, ImageDraw
-import time
 import os
+
 '''
-in phase 0 we are only interested in achieving a constant non zero abundance of the species on the island. 
-only one species. 
-no niche.
-we change the dispersal, now only long, short dispersal given by gaussean, centered in the mean
-and sd 1/4 mainland
-"competition" occurs by randomly selecting an individual if is in the same place than other
----------------------
 in phase 1 we add the environmental resources + plant niche. 
 '''
 #my functions 
 os.chdir("C:/Users/mdrmi/OneDrive/Escritorio/ABM_PHASES_SIMU")
 from corrected_landscape_fixed_insolation_area import landscape_fixed_insolation_area
-##nvfrom species_colors import color_species #we are only working with one specie. 
-#from species_disp_2 import dispersion_species  
 from data_collection_2_phase_0 import data
 from competition_phase_1 import competition
 from community_control import community_control
 from list_of_species import list_of_species
 from sps_niche_phase_1_1 import species_niche
-from environmental_niche import  niche_construction
-#GLOBAL VARIABLES RELATED TO LANDSCAPE 
-
-nrow = ncol = 100
-size = 1/3
-main = ncol // 3
-shape = 0
-current_time_step = 0
-#directory that contains the name of the sps "sp1, sp2,... spx"
-species_list = list_of_species(2) #OJO
-##nvspecies_colors = color_species(species_list) #we need to put it like this because there is one sps.
-# time steps of the simulation
-max_time_steps = 1000
-
-#per =  50 we dont use this 
-rep = 1
-#species_dispersal = dispersion_species([1], main)
-
-mainland_island = landscape_fixed_insolation_area(nrow, ncol, size, 'medium', main)
-
-#resources available in the environment
-resources = niche_construction(mainland_island)
-resources_environment = resources[0]
-resources_island = resources[1]
-resources_mainland = resources[2]
-
-#directory that contains the niche of different sps. 
-species_niches_dict = species_niche(species_list, resources_mainland)
+from environmental_niche_30_per import  niche_construction
+   
 
 
-species_list_stable = species_list[:]
-
-##nvspecies_colors_dict = dict(zip(species_list_stable, species_colors)) #this is ok, will produce 1 sps.
-#species_disp_dict = dict(zip(species_list_stable, species_dispersal))
-#class visual is not modified in phase 0.
-
-##nv class Visual:
-#     def __init__(self, max_x, max_y):
-#         '''
-#         defines visual output mainland island species
-#         '''
-#         self.zoom = 4
-#         self.max_x = max_x
-#         self.max_y = max_y
-#         self.root = tk.Tk()
-#         self.canvas = tk.Canvas(self.root, width=max_x * self.zoom, height=max_y * self.zoom)
-#         self.canvas.pack()
-#         self.canvas.config(background='royalblue')
-#         self.squares = np.empty((self.max_x, self.max_y), dtype=object)
-#         self.initialize_squares()
-#         self.time_step_label = tk.Label(self.root, text="Time Step: 0", fg="white", bg="royalblue")
-#         self.time_step_label.pack()
-
-#     def update_time_step(self, time_step):
-#         self.time_step_label.config(text=f"Time Step: {time_step}")
-
-
-#     def initialize_squares(self):
-#         '''
-#         create the land (island and mainland as brown) and the squares that represent each coordinate
-#         '''
-#         for x in range(self.max_x):
-#             for y in range(self.max_y):
-#                 fill_color = 'saddlebrown' if mainland_island[y, x] != 0 else ''
-#                 self.squares[x, y] = self.canvas.create_rectangle(
-#                     x * self.zoom, y * self.zoom, (x + 1) * self.zoom, (y + 1) * self.zoom,
-#                     outline='black', fill=fill_color )
-# def update_time_step_label(time_step):
-    
-#     visual.update_time_step(time_step)
-
-class Plant:
+def dispersal(indiv, nrow, mainland_island):
     '''
-    in phase 0 plant does not have a niche
+    dispersal function, the offspring of the plants (seeds) are the one that get dispersed. 
+    two types of dispersal: short and more frequent, long and less frequent. returns the new position of 
+    the seeds (in update controls to make sure seed disperse in landscape boundaries and in land)
+    indiv: agent 
+    nrow: length (number of rows) of mainland matrix 
+    mainland_island: landscape 
     '''
-    def __init__(self, x, y,  species):##nvdrawing, species):
-        self.x = x
-        self.y = y
-       ##nv self.drawing = drawing
-        self.age = 0
-        self.pos = [x, y]
-        #self.disp_cap = species_disp_dict.get(species)          
-      ##nv  self.color = species_colors_dict.get(species)
-        self.species = species       
-        self.niche = species_niches_dict.get(species)     
-        if len(self.niche) == 10: #this can change OJO!!! 
-            self.type_sps = "Generalist"
-        else: 
-            self.type_sps = "Epecialist"                   
-            
-#nv def create_plant(x, y,initial_color):
-#     '''
-#     the plant is created on the window in a different function
-#     '''    
-#     radius = 0.5
-#     return canvas.create_oval(
-#         (x - radius) * visual.zoom, (y - radius) * visual.zoom,
-#         (x + radius) * visual.zoom, (y + radius) * visual.zoom,
-#         outline='black', 
-#         fill = initial_color
-#         )
-
-def dispersal(indiv):
     type_d =  rnd. uniform(0, 1)
     if type_d >= 0.9: 
         #dispersal_type = 'long_distance' #less probable 10%
@@ -150,172 +48,168 @@ def dispersal(indiv):
     
     direction = rnd.choice([-1, 1])
     dx = dispersal_x * direction
+
     direction = rnd.choice([-1, 1])
     dy = dispersal_y * direction
+
     x_new = int(indiv.x + dx)
     y_new = int((indiv.y + dy) % nrow)  # Wrap around vertically
-#check
+
     if 0 <= x_new < mainland_island.shape[0] and 0 <= y_new < mainland_island.shape[1]:  # Check horizontal boundaries
         if mainland_island[y_new, x_new] != 0:
-           ##nv canvas.coords(indiv.drawing, (x_new - 0.5) * visual.zoom, (y_new - 0.5) * visual.zoom,
-              ##nv            (x_new + 0.5) * visual.zoom, (y_new + 0.5) * visual.zoom)
             indiv.x = x_new
             indiv.y = y_new
             return [indiv.x, indiv.y]
+        else: 
+            return None 
     else: 
         return None
-
-##nvvisual = Visual(ncol, nrow)
-##nvcanvas = visual.canvas
 community = []
 
+          
 
-# nv def stop_clock(num_steps, current_time_step, pause_time):
-#     if current_time_step in (num_steps):        
-#         time.sleep(pause_time)
-         
+def simulations(num_simus):     
+    '''
+    this gives all of the parameters to run the simulations
+    '''
+    for i in range(1,num_simus):  
+        #to track info of simus
+        rnd.seed(i)
+        np.random.seed(i)  
+          
+        # time steps of the simulation + replicas 
+        max_time_steps = 1000        
+        rep = i    
+
+        #parameters of landscape + creation
+        nrow = ncol = 100
+        size = 1/3
+        main = ncol // 3             
+        mainland_island = landscape_fixed_insolation_area(nrow, ncol, size, 'medium', main)  
+
+        #define number of species
+        #directory that contains the name of the sps "sp1, sp2,... spx"
+        species_list = list_of_species(2)         
+              
+        #resources available in the environment, niche of environment + niche sps
+        resources = niche_construction(mainland_island) #function call
+        resources_environment = resources[0] #matrix with resources (overlaps with landscape)
+        resources_island = resources[1] 
+        resources_mainland = resources[2]
+        species_niches_dict = species_niche(species_list, resources_mainland)             
         
-def update(nrow, ncol, size, main, shape,  species_list, max_time_steps, rep, mainland_island, resources, resources_environment, resources_island, resources_mainland, species_niches_dict, species_list_stable,  community):    
-   # print("this is resources island")
-   # print(set(resources_island) )     
-    current_time_step = 0
-   
-    print("this is the niche of the island:",resources_island)    
-    
-    #for specie in species_list:    
+        #added, i need to define class here 
+        
+        class Plant:  
+            '''
+            this function defines the agents of this project: plants. 
+            they are defined by a 2D position (x and y), they have an age (annual plants), 
+            they have a niche which defined if they are generalists; use + resources but in a -efficient 
+            way, and especialists - resources in a + efficient way.
+            '''   
+            def __init__(self, x, y,  species):
+                self.x = x
+                self.y = y      
+                self.age = 0
+                self.pos = [x, y]      
+                self.species = species       
+                self.niche = species_niches_dict.get(species)     
+                if len(self.niche) == max([l for l in map(len, species_niches_dict.values())]): 
+                    self.type_sps = "Generalist"
+                    
+                else: 
+                    self.type_sps = "Epecialist"           
+                    
+        community = []     
+        #runs update    
+        update(nrow, main, species_list, max_time_steps, rep, mainland_island,  resources_island, community, "sim_1", Plant)
+                
+        print("Starting", i)
+        
+        
+def update(nrow,  main, species_list, max_time_steps, rep, mainland_island, resources_island, community, type_sim, Plant):    
+    ''' 
+    this is the core of all of the simulations, basically creates offspring and disperse it, carry out competition (inter and intra)
+    in the island, carries out community control in the mainland, eliminates from community the plants that are lost due to this
+    and export data. 
+    ''' 
+    current_time_step = 0   
+         
     while current_time_step < max_time_steps:
+       
+        #-------- formation of the community chunk 
         for i in species_list:
             #20 indiv. per species
             for _ in range(20):        
-                x = int(rnd.uniform(0, main)) # they get inizialized in the mainland             
+                x = rnd.randint(0, main) # they get inizialized in the mainland             
                # if 0 <= x < ncol: i think this is trivial, we know x should be in 0 main
-                y = int(rnd.uniform(0, nrow))  # discrete position
-              ##nv  drawing = create_plant(x, y, initial_color='red')
-                plant = Plant(x, y,i) ## nv drawing, i)
+                y = rnd.randint(0, nrow-1)  # discrete position              
+                plant = Plant(x, y,i) 
                 community.append(plant)
-        
-       # create_individuals_mainland()
-      ##nv  update_time_step_label(current_time_step)
-      
-        plants_to_remove = []         #offspring    
-          
+        #----------------------------------------------------------------------------------------
+        plants_to_remove = []     #plants that will be excluded to the community   
+
+        #-------- offspring creation chunk             
         for x in range(len(community)):         
             plant = community[x]
-            print("this is the niche of ", plant.species, plant.niche)
-            #now the plant could produce more than 1 seed/ offspring, randomly. i changed it to three. trivial
+            #plants can have between 1 to 3 seeds            
             num_offspring = rnd.randint(1,3)
             if plant.age>1: 
-                for seed in range(num_offspring):     
-                    position = dispersal(plant) #for now its that parent
-                    if position != None: #so not out of the x limits
+                for seed in range(num_offspring):    #seed not used as variable, named for ilustrative porpuses 
+                    position = dispersal(plant, nrow, mainland_island) #for now its that parent
+                    if position != None: #so not out of the x limits, not in sea. meaning if falls on the sea or outside world limits it will not be taken into account
                         x_off = position[0]
                         y_off = position[1] 
-                        #if x_off <0 or x_off> ncol: #this is because we took of the round wold in the y 
-                        #NOW PHASE 1, THIS ONLY OCCURS IF THE SEED CAN USE RESOURCES IN THE ISLAND
-                        #CLARIFICATION, SPS ALWAYS WILL SHARE RESOURCES WITH MAINLAND BECAUSE ITS CONSTRUCTED 
-                        #AS A SUBSET
-                        if mainland_island[x_off, y_off] == 2: 
-                            if len(list(set(resources_island) & set(plant.niche))) != 0: # niche of the parent for now                   
-                                print("this is the set", len(list(set(resources_island) & set(plant.niche))))   
-                             ##nv   drawing_off = create_plant(x_off, y_off, plant.color)
-                                offspring = Plant(x_off, y_off,  plant.species) ##nv drawing_off, plant.species)
+
+                        #in phase 1, estableshisment only occurs if offspring can use resources present in the island. 
+                        #clarification, sps always can be in the mainland because always has overlapping resources with mainland
+                    
+                        if mainland_island[x_off, y_off] == 2: #in island                            
+                            if len(list(set(resources_island) & set(plant.niche))) != 0: # niche of the parent for now                                
+                                offspring = Plant(x_off, y_off, plant.species) #again, establishment only if seed overlaps with island
                                 community.append(offspring)  
                             else: 
-                                continue  # Skip the current iteration and move to the next
+                                continue  # seed cant stablish in the island, move 
                                 
-                        else: #in mainland
-                           ##nv drawing_off = create_plant(x_off, y_off, plant.color)
-                            #for the community
-                            offspring = Plant(x_off, y_off, plant.species)##nvdrawing_off, plant.species)
+                        else: #in mainland establishment always possible because overlapping always occur
+                            offspring = Plant(x_off, y_off, plant.species) 
                             community.append(offspring)  
-                                            
+                    else: #new part, if it falls outside the limits of the world or in the ocean seed not considered and next case
+                        continue                        
                 if plant.age >= 1:
-                    #for visual output
-                   ##Nv canvas.delete(plant.drawing)
-                    #for community
                     plants_to_remove.append(plant)  
-        #competition
+        #----------------------------------------------------------------------------------------
+        
+        #-----------competition chunk
         plants_down_for_competition = competition(community,plants_to_remove,resources_island, mainland_island)  
         #adding plants lost for competition to list to eliminate 
-        plants_to_remove.extend(plants_down_for_competition)
+        plants_to_remove.extend(plants_down_for_competition[0])
+        #----------------------------------------------------------------------------------------  
+
+        #----------community control on mainland line 
         #avoid monopolization in island
         com_control = community_control(community,nrow,main)
         plants_to_remove.extend(com_control)
-        for plant in plants_to_remove:
-           ##nv canvas.delete(plant.drawing)
+        #-----------------------------------------------------------------------------------------
+
+        #---------- elimination of all plants that didnt make it chunk 
+        for plant in plants_to_remove:          
             if plant in community:
-                community.remove(plant)
-            
-    
-        for plant in community:
-          #  print("age",plant.age)       
-            plant.age += 1
-         
+                community.remove(plant)    
+        for plant in community:            
+            plant.age += 1     
+        #-----------------------------------------------------------------------------------------
         print(len(community))    
-        print('CURRENT TIME STEP', current_time_step)
-        
+        print('CURRENT TIME STEP', current_time_step)        
         # Data collection chunk
-        # so we record data at each time step
-        # if current_time_step % 10 == 0:
-    
-        data(community, mainland_island, current_time_step,rep)
+        # so we record data at each time step    
+        #---------- export data chunk 
+        data(community, mainland_island, current_time_step,rep, plants_down_for_competition[1],resources_island, "30_per" )
         current_time_step += 1         
-    if current_time_step < max_time_steps:
-    #   nv  # Schedule the next update with an interval
-    #     visual.root.after(200, update)
-   # else:
-        # Stop the simulation when we reach the maximum time steps
-        print("Simulation finished.")
-
-
-#update()
-##nvvisual.root.mainloop()
-
-
-def  simulations():
     
-    for i in range(1,101): 
-    
-        
-        nrow = ncol = 100
-        size = 1/3
-        main = ncol // 3
-        shape = 0
-        current_time_step = 0
-        #directory that contains the name of the sps "sp1, sp2,... spx"
-        species_list = list_of_species(2)
-        ##nv species_colors = color_species(species_list) #we need to put it like this because there is one sps.
-        # time steps of the simulation
-        max_time_steps = 1000
-        
-        #per =  50 we dont use this 
-        rep = i
-        #species_dispersal = dispersion_species([1], main)
-        
-        mainland_island = landscape_fixed_insolation_area(nrow, ncol, size, 'medium', main)
-        
-        #resources available in the environment
-        resources = niche_construction(mainland_island)
-        resources_environment = resources[0]
-        resources_island = resources[1]
-        resources_mainland = resources[2]
-        
-        #directory that contains the niche of different sps. 
-        species_niches_dict = species_niche(species_list, resources_mainland)
+    print("simulation finished")
+
         
         
-        species_list_stable = species_list[:]
-        
-        ##nvspecies_colors_dict = dict(zip(species_list_stable, species_colors)) #this is ok, will produce 1 sps.
-        #species_disp_dict = dict(zip(species_list_stable, species_dispersal))
-        #class visual is not modified in phase 0.
-      #nv  visual = Visual(ncol, nrow)
-      # nv canvas = visual.canvas
-        community = []
-        
-        
-        update(nrow, ncol, size, main, shape,  species_list, max_time_steps, rep, mainland_island, resources, resources_environment, resources_island, resources_mainland, species_niches_dict, species_list_stable, community)
-       #nv  visual.root.mainloop()
-        print("Starting", i)
       
-simulations()
+simulations(101)

@@ -14,8 +14,9 @@ def landscape_fixed_insolation_area(nrow, ncol, size, insolation, main):
     This creates a matrix with 3 values:
     1 represents mainland, generally the half of it in the left side from top to bottom, given by main
     0 represents the sea 
-    2 represents the island, which position in the sea is random, but always is at least 2 squares away from the mainland. The 
-    size of the island can be modified by the size argument. 
+    2 represents the island, which position in the sea is random, but always is at least 2 squares away (easy to change, look at it!) from the mainland. The 
+    size of the island can be modified by the size argument. it needs to be a whole number. 
+    nrow, ncol and size also needs to be a whole number 
     Now fixed insolation 3 possibilities, close, medium, far
     ''' 
     landscape = np.zeros((nrow, ncol))
